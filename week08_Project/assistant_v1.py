@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 from llm import LLM
-# 从你上周写的 rag_qa 中导入核心函数
 from rag_qa import rag_qa 
 
 load_dotenv()
@@ -12,15 +11,22 @@ SYSTEM_HINT = "你是国际中文教学助手，面向HSK3-4学习者，回答�
 # 实例化双引擎
 llm = LLM()
 
-def answer(question, use_rag=True, prefer="local"):
+# 🌟 加分改造点：新增 return_citation 开关
+def answer(question, use_rag=True, prefer="local", return_citation=True):
     """
-    核心粘合逻辑：use_rag开关控制是否查资料
+    核心粘合逻辑：
+    1. use_rag 控制是否查资料
+    2. return_citation 控制是否返回出处
     """
     if use_rag:
-        # 走 RAG 检索（内部已经包含了构建 prompt 的逻辑）
-        # 注意：你之前的 rag_qa 里面硬编码了 prefer="api"，这里为了展示双引擎，我们用本地的
+        # 走 RAG 检索
         print("🔍 [系统日志] 正在查阅本地知识库...")
-        return rag_qa(question)
+        ans = rag_qa(question)
+        
+        # 如果关闭了返回出处，就把字符串里的来源截断掉
+        if not return_citation and "[来源：" in ans:
+            ans = ans.split("[来源：")[0].strip()
+        return ans
     else:
         # 纯对话模式
         print("💬 [系统日志] 直接呼叫大模型（不查资料）...")
@@ -28,21 +34,27 @@ def answer(question, use_rag=True, prefer="local"):
         return llm.ask(prompt, prefer=prefer)
 
 if __name__ == "__main__":
-    # 老师要求的三个必问学科问题
-    questions = [
-        "把字句的教学难点有哪些",
-        "HSK4词汇量要求是多少",
-        "《愚公移山》可以设计什么课堂活动"
-    ]
-    
     print("========== 助手 v1.0 演示开始 ==========\n")
-    for q in questions:
-        print(f"Q: {q}")
-        try:
-            # 默认开启 RAG 模式
-            ans = answer(q, use_rag=True, prefer="local")
-            print(f"A: {ans}\n")
-        except Exception as e:
-            # 异常兜底，防止现场演示崩溃
-            print(f"A: [运行失败] {e}\n")
-        print("-" * 40)
+    
+    # 老师要求的三个必问学科问题之一
+    q = "HSK4词汇量要求是多少"
+    print(f"Q: {q}\n")
+    
+    # 演示场景 1：开启 RAG 且返回出处
+    print("--- 场景 1：基于资料回答，且【显示】出处 ---")
+    ans_with_citation = answer(q, use_rag=True, return_citation=True)
+    print(f"A: {ans_with_citation}\n")
+    
+    print("-" * 50)
+    
+    # 演示场景 2：开启 RAG 但隐藏出处（加分改造项演示）
+    print("--- 场景 2：基于资料回答，但【隐藏】出处 (加分改造) ---")
+    ans_without_citation = answer(q, use_rag=True, return_citation=False)
+    print(f"A: {ans_without_citation}\n")
+    
+    print("-" * 50)
+    
+    # 演示场景 3：关闭 RAG 纯对话模式
+    print("--- 场景 3：纯对话模式（不查资料）---")
+    ans_pure_chat = answer(q, use_rag=False)
+    print(f"A: {ans_pure_chat}\n")
