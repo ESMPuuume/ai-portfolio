@@ -51,3 +51,7 @@ ai-portfolio/
    ├─ rag_mapping.md         // 官方RAG流水线映射表
    ├─ reflect.md             // 300字反思与B路径加分项说明
    └─ peer_review.md         // 互评记录与第9周工具预习清单
+├─ week09/                   // 第九周：智能体原理与工具调用
+│  ├─ tool_agent.py          // 包含4个工具（时间、计算、HSK查询、课文难度评估）的智能体
+│  ├─ trajectory_log.md      // 3条调用轨迹、失败会诊与W10预习
+│  └─ smolagents_mapping.md  // 开源框架对照加分项
